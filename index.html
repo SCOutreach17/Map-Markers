@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bristol Schools Map</title>
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.5/dist/leaflet.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+  />
+
+  <style>
+    /* Full-page map */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.5/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<script>
+// =======================
+// Schools data
+// =======================
+const schools = [
+  { name: "Ashton Park School", postcode: "BS3 2JL", lat: 51.440577, lon: -2.630645, county: "Bristol", category: "Secondary" },
+  { name: "Backwell C of E Junior School", postcode: "BS48 3JJ", lat: 51.411367, lon: -2.732001, county: "North Somerset", category: "Primary" },
+  { name: "Backwell School", postcode: "BS48 3BX", lat: 51.416238, lon: -2.739442, county: "North Somerset", category: "Secondary" },
+  { name: "Bannerman Road Community Academy", postcode: "BS5 0HR", lat: 51.463701, lon: -2.564184, county: "Bristol", category: "Primary" },
+  { name: "Bedminster Down School", postcode: "BS13 7DQ", lat: 51.421401, lon: -2.619912, county: "Bristol", category: "Secondary" },
+  { name: "Beechen Cliff Sixth Form", postcode: "BA2 4RE", lat: 51.372258, lon: -2.360322, county: "Bath and North East Somerset", category: "Further Education" },
+  { name: "Blackhorse Primary School", postcode: "BS16 6TR", lat: 51.499895, lon: -2.489603, county: "South Gloucestershire", category: "Primary" },
+  { name: "Blaise High School", postcode: "BS10 7QH", lat: 51.510203, lon: -2.630093, county: "Bristol", category: "Secondary" },
+  { name: "Bradley Stoke Community School (Secondary)", postcode: "BS32 9BS", lat: 51.536189, lon: -2.545703, county: "South Gloucestershire", category: "Secondary" },
+  { name: "Bridge Learning Campus (Secondary)", postcode: "BS13 0RL", lat: 51.407426, lon: -2.588881, county: "Bristol", category: "Secondary" },
+  { name: "Bristol Brunel Academy", postcode: "BS15 1NU", lat: 51.467980, lon: -2.527728, county: "Bristol", category: "Secondary" },
+  { name: "Cameley Primary School", postcode: "BS39 5BD", lat: 51.320903, lon: -2.540963, county: "Bath and North East Somerset", category: "Primary" },
+  { name: "Chipping Sodbury Brownies", postcode: "BS37 4EB", lat: 51.537434, lon: -2.415289, county: "South Gloucestershire", category: "Other" },
+  { name: "Christ Church C of E Primary (Clifton)", postcode: "BS8 3AW", lat: 51.457235, lon: -2.616165, county: "Bristol", category: "Primary" },
+  { name: "Christ Church C of E VC Junior School (Downend)", postcode: "BS16 5JJ", lat: 51.484083, lon: -2.509595, county: "South Gloucestershire", category: "Primary" },
+  { name: "Christ Church Hanham Primary School", postcode: "BS15 3LA", lat: 51.443074, lon: -2.521455, county: "South Gloucestershire", category: "Primary" },
+  { name: "Dolphin Primary School", postcode: "BS6 5PT", lat: 51.466427, lon: -2.589611, county: "Bristol", category: "Primary" },
+  { name: "Evergreen Primary Academy", postcode: "BS5 0YR", lat: 51.466558, lon: -2.572109, county: "Bristol", category: "Primary" },
+  { name: "Fairfield Primary School", postcode: "BS48 3PD", lat: 51.416728, lon: -2.730246, county: "North Somerset", category: "Independent Primary" },
+  { name: "Future Brunels", postcode: "BS1 6TY", lat: 51.449248, lon: -2.608013, county: "Bristol", category: "Other" },
+  { name: "Hannah More Primary School", postcode: "BS2 0LT", lat: 51.453773, lon: -2.579260, county: "Bristol", category: "Primary" },
+  { name: "Hardenhuish School", postcode: "SN146RJ", lat: 51.470670, lon: -2.131352, county: "Wiltshire", category: "Secondary" },
+  { name: "Heron's Moor Academy", postcode: "BS24 7DX", lat: 51.352588, lon: -2.914760, county: "North Somerset", category: "Primary" },
+  { name: "Hillcrest Primary School", postcode: "BS4 3DE", lat: 51.439520, lon: -2.572160, county: "Bristol", category: "Primary" },
+  { name: "Iron Acton Primary School", postcode: "BS37 9UZ", lat: 51.549762, lon: -2.460889, county: "South Gloucestershire", category: "Primary" },
+  { name: "King's Oak Academy (Secondary)", postcode: "BS15 4JT", lat: 51.461719, lon: -2.484560, county: "South Gloucestershire", category: "Secondary" },
+  { name: "Kings' Forest Primary School", postcode: "BS15 4PQ", lat: 51.473022, lon: -2.490871, county: "South Gloucestershire", category: "Primary" },
+  { name: "Knowle DGE Academy", postcode: "BS4 1QY", lat: 51.425426, lon: -2.598175, county: "Bristol", category: "Special/Alternative" },
+  { name: "Luckwell Primary School", postcode: "BS3 3ET", lat: 51.437302, lon: -2.612402, county: "Bristol", category: "Primary" },
+  { name: "Mangotsfield School", postcode: "BS16 9LH", lat: 51.479913, lon: -2.483499, county: "South Gloucestershire", category: "Secondary" },
+  { name: "May Park Primary School", postcode: "BS5 6LE", lat: 51.471646, lon: -2.557558, county: "Bristol", category: "Primary" },
+  { name: "Merchants Academy (Secondary)", postcode: "BS13 9AJ", lat: 51.411743, lon: -2.611469, county: "Bristol", category: "Secondary" },
+  { name: "Millpond Primary School", postcode: "BS5 0YR", lat: 51.466559, lon: -2.572107, county: "Bristol", category: "Primary" },
+  { name: "New Fosseway School", postcode: "BS13 0RG", lat: 51.407426, lon: -2.588881, county: "Bristol", category: "Special/Alternative" },
+  { name: "New Horizons Learning Centre", postcode: "BS15 9RD", lat: 51.456933, lon: -2.495951, county: "South Gloucestershire", category: "Special/Alternative" },
+  { name: "New Siblands School", postcode: "BS35 2JU", lat: 51.610804, lon: -2.511447, county: "South Gloucestershire", category: "Special/Alternative" },
+  { name: "North Star 240°", postcode: "BS11 0QA", lat: 51.503746, lon: -2.656414, county: "Bristol", category: "Secondary" },
+  { name: "Oasis Academy Brightstowe", postcode: "BS11 0EB", lat: 51.490513, lon: -2.670210, county: "Bristol", category: "Secondary" },
+  { name: "Oasis Academy Brislington", postcode: "BS4 5EY", lat: 51.425561, lon: -2.538601, county: "Bristol", category: "Secondary" },
+  { name: "Oasis Academy John Williams", postcode: "BS14 9BU", lat: 51.420586, lon: -2.564213, county: "Bristol", category: "Secondary" },
+  { name: "Olympus Development Hub (Oasis Academy Trust)", postcode: "BS34 8SF", lat: 51.513907, lon: -2.553623, county: "South Gloucestershire", category: "Special/Alternative" },
+  { name: "Orchard School", postcode: "BS7 0XZ", lat: 51.499724, lon: -2.580160, county: "Bristol", category: "Secondary" },
+  { name: "Snowdon Village", postcode: "BS5 9QR", lat: 51.455563, lon: -2.560601, county: "Bristol", category: "Special/Alternative" },
+  { name: "St Barnabas Primary School", postcode: "BS30 5NW", lat: 51.450637, lon: -2.470210, county: "South Gloucestershire", category: "Primary" },
+  { name: "St Mary Redcliffe and Temple School", postcode: "BS1 6RT", lat: 51.446006, lon: -2.587695, county: "Bristol", category: "Secondary" },
+  { name: "St Mary Redcliffe Primary School", postcode: "BS3 4DP", lat: 51.441871, lon: -2.589340, county: "Bristol", category: "Primary" },
+  { name: "St Matthias Academy", postcode: "BS16 2BG", lat: 51.478977, lon: -2.537632, county: "Bristol", category: "Special/Alternative" },
+  { name: "St Nicholas of Tolentine Primary School", postcode: "BS5 0TJ", lat: 51.459732, lon: -2.577910, county: "Bristol", category: "Primary" },
+  { name: "Stanbridge Primary School", postcode: "BS16 6AL", lat: 51.489394, lon: -2.495712, county: "South Gloucestershire", category: "Primary" },
+  { name: "Streams Learning Hub", postcode: "BS1 5TT", lat: 51.450874, lon: -2.602925, county: "Bristol", category: "Other" },
+  { name: "University of Bristol", postcode: "BS8 1QU", lat: 51.454513, lon: -2.587910, county: "Bristol", category: "Higher Education" },
+  { name: "UWE", postcode: "BS16 1QY", lat: 51.476471, lon: -2.520042, county: "South Gloucestershire", category: "Higher Education" }
+];
+
+// =======================
+// Map setup
+// =======================
+const map = L.map('map').setView([51.4545, -2.5879], 12);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+// =======================
+// Marker cluster
+// =======================
+const markers = L.markerClusterGroup();
+
+const categoryColors = {
+  "Primary": "blue",
+  "Secondary": "green",
+  "Community": "orange",
+  "Other": "purple",
+  "Further Education": "darkred",
+  "Special/Alternative": "red",
+  "Independent Primary": "cyan",
+  "Higher Education": "black"
+};
+
+schools.forEach(school => {
+  const marker = L.circleMarker([school.lat, school.lon], {
+    radius: 8,
+    color: categoryColors[school.category] || "gray",
+    fillOpacity: 0.7
+  });
+
+  marker.bindPopup(`
+    <b>${school.name}</b><br>
+    ${school.county}<br>
+    Category: ${school.category}<br>
+    Postcode: ${school.postcode}
+  `);
+
+  markers.addLayer(marker);
+});
+
+map.addLayer(markers);
+</script>
+
+</body>
+</html>
